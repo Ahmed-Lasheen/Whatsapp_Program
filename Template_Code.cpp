@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <ctime>
+#include <fstream>
 using namespace std;
 
 // ========================
@@ -142,34 +143,98 @@ protected:
     string chatName;
     
 public:
+    bool keywordCompare(string keyword , string current_message)
+    {
+        int textLen = current_message.length();
+        int keyLen = keyword.length();
+        for (int i = 0; i <= textLen - keyLen; i++) 
+        {
+            bool found =1;
+            for (int j = 0; j < keyLen; j++) 
+            {
+                if (current_message[i + j] != keyword[j])
+                {
+                    found = 0;
+                    break;
+                }
+            }
+            if(found)
+             return found;
+        }
+        return 0;
+    }
     Chat() {
         // TODO: Implement default constructor
+        chatName="N/A";
     }
     
     Chat(vector<string> users, string name) {
-        // TODO: Implement parameterized constructor
+        for (string user : users)
+        {
+            participants.push_back(user);
+        }
+        chatName=name;
     }
     
     void addMessage(const Message& msg) {
-        // TODO: Implement message addition
+        messages.push_back(msg);
     }
     
     bool deleteMessage(int index, const string& username) {
-        // TODO: Implement message deletion
+        if(index<=messages.size()||index>0)
+        {
+        for(int i=0 ; i<messages.size() ; i++)
+        {
+            if(i==index-1)
+            {
+                cout << "-"<<username <<" deleted this message "<<messages[i].getContent()<<endl;
+                return true;
+            }
+        }
         return false;
+        }
+        else 
+            cout<<"THAT'S NOT A VALID INDEX!! please enter index between ("<<1<<","<<messages.size()<<endl;
     }
     
     virtual void displayChat() const {
-        // TODO: Implement chat display
+        for(int i=0 ; i<messages.size() ; i++)
+        {
+           if(messages[i].getStatus()!="read")
+                messages[i].setStatus("read")=;
+
+           cout << "-"<<messages[i].getSender()<<" : "<<messages[i].getContent()<<endl;
+        }
     }
     
     vector<Message> searchMessages(string keyword) const {
-        // TODO: Implement message search
-        return {};
+        vector<Message> found;
+        for(int i=0 ;  i<messages.size() ;  i++)
+        {
+            if(keywordCompare(keyword,messages[i].getContent()))
+            {
+                found.push_back(messages[i]);
+            }
+        }
+        return found;
     }
     
-    void exportToFile(const string& filename) const {
+    void exportToFile(const string& filename) const 
+    {
         // TODO: Implement export to file
+        ofstream outfile;
+        outfile.open(filename);
+        if(outfile.is_open())
+        {
+            outfile <<"chat : "<< chatName <<endl<<endl;
+            for(Message m : messages)
+            {
+                outfile <<" - " <<m.getSender<<" : \""<<m.getContent<<"\""<<endl;
+            }
+            outfile.close();
+        }
+        else 
+        cout<<"ERROR COULD NOT EXPORT TO THE DESIRED FILE"<<endl;
     }
 };
 
@@ -182,16 +247,28 @@ private:
     string user2;
     
 public:
-    PrivateChat(string u1, string u2) {
+    PrivateChat(string u1, string u2){
         // TODO: Implement constructor
+        user1=u1;
+        user2=u2;
+        participants.push_back(user1);
+        participants.push_back(user2);
     }
     
     void displayChat() const override {
         // TODO: Implement private chat display
+        for(int i=0 ; i<messages.size() ; i++)
+        {
+            if(messages[i].getStatus()!="read")
+                messages[i].setStatus("read");
+
+           cout << "-"<<messages[i].getSender()<<" : "<<messages[i].getContent()<<endl;
+        }
     }
     
     void showTypingIndicator(const string& username) const {
         // TODO: Implement typing indicator
+        cout<<username<<" is Typing..."<<endl;
     }
 };
 
