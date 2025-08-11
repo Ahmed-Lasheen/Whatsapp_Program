@@ -35,6 +35,9 @@ public:
         return username;
 
     }
+    string getPassword() {
+        return password;
+    }
 
     string getPhoneNumber() const {
         // TODO: Implement getter
@@ -54,11 +57,11 @@ public:
     void setStatus(string newStatus) {
         // TODO: Implement setter
         if(newStatus == "Online" || newStatus == "Offline") {
-        status = newStatus;
-        if(newStatus == "Online") {
-            updateLastSeen();
+            status = newStatus;
+            if(newStatus == "Online") {
+                updateLastSeen();
+            }
         }
-    }
     }
 
     void setPhoneNumber(string phone) {
@@ -103,55 +106,84 @@ private:
 public:
     Message() {
         // TODO: Implement default constructor
+        sender = "Unknown";
+        content = "";
+        status = "sent";
+        replyTo = nullptr;
+        updateTimestamp();
+
     }
 
     Message(string sndr, string cntnt) {
         // TODO: Implement parameterized constructor
+        sender =sndr;
+        content = cntnt;
+        status="sent";
+        replyTo= nullptr;
+        updateTimestamp();
     }
 
     string getContent() const {
         // TODO: Implement getter
-        return "";
+        return content;
     }
 
     string getSender() const {
         // TODO: Implement getter
-        return "";
+        return sender;
     }
 
     string getTimestamp() const {
         // TODO: Implement getter
-        return "";
+        return timestamp;
     }
 
     string getStatus() const {
         // TODO: Implement getter
-        return "";
+        return status;
     }
 
     Message* getReplyTo() const {
         // TODO: Implement getter
-        return nullptr;
+        return replyTo;
     }
 
     void setStatus(string newStatus) {
         // TODO: Implement setter
+        status= newStatus;
     }
 
     void setReplyTo(Message* msg) {
         // TODO: Implement setter
+        replyTo= msg;
     }
 
     void updateTimestamp() {
         // TODO: Implement timestamp update
+        time_t now = time(0);
+        tm* timeinfo = localtime(&now);
+
+        timestamp = to_string(timeinfo->tm_hour) + ":" +
+              (timeinfo->tm_min < 10 ? "0" : "") +to_string(timeinfo->tm_min);
+
+
     }
 
     void display() const {
         // TODO: Implement message display
+        if (replyTo != nullptr) {
+            cout<<"You replied to" << replyTo-> getSender()<<": " << replyTo->getContent()<<endl;
+        }
+        cout<< "time: "<<timestamp<<sender<<":"<<content;
+        if (status != "sent") {
+            cout<<" (" <<status<< ")";
+        }
+        cout<<endl;
     }
 
     void addEmoji(string emojiCode) {
         // TODO: Implement emoji support
+        content += emojiCode;
     }
 };
 
