@@ -281,39 +281,57 @@ private:
     string description;
     
 public:
-    GroupChat(vector<string> users, string name, string creator) {
-        // TODO: Implement constructor
+    GroupChat(vector<string> users, string name, string creator) : Chat(users, name){
+        admins.push_back(creator);
+        description = "No description";
     }
     
     void addAdmin(string newAdmin) {
-        // TODO: Implement add admin
+        admins.push_back(newAdmin);
     }
     
     bool removeParticipant(const string& admin, const string& userToRemove) {
-        // TODO: Implement remove participant
+        if(!isAdmin(admin)) return false;
+        for(vector<string>::iterator it = participants.begin(); it != participants.end(); ++it){
+            if(*it == userToRemove){
+                participants.erase(it);
+                return true;
+            }
+        }
         return false;
     }
     
     bool isAdmin(string username) const {
-        // TODO: Implement admin check
+        for(int i = 0; i < (int)admins.size();i++){
+            if(admins[i] == username){
+                return true;
+            }
+        }
         return false;
     }
     
     bool isParticipant(string username) const {
-        // TODO: Implement participant check
+        for(int i = 0; i < (int)participants.size(); i++){
+            if(participants[i] == username){
+                return true;
+            }
+        }
         return false;
-    }
+    }        
     
     void setDescription(string desc) {
-        // TODO: Implement set description
+        description = desc;
     }
     
     void displayChat() const override {
-        // TODO: Implement group chat display
+        cout << "== Group: " << chatName << " ===\nDescription: " << description << "\n";
+        for (vector<Message>::const_iterator it = messages.begin(); it != messages.end(); ++it){
+            it->display();
+        }
     }
     
     void sendJoinRequest(const string& username) {
-        // TODO: Implement join request
+        cout << username << " has requested to join the group " << chatName << "\n";
     }
 };
 
@@ -327,45 +345,132 @@ private:
     int currentUserIndex;
     
     int findUserIndex(string username) const {
-        // TODO: Implement user search
+        for (int i = 0; i < (int)users.size(); i++){
+            if(users[i].getUsername() == username) return i;
+        }
         return -1;
     }
     
     bool isLoggedIn() const {
-        // TODO: Implement login check
-        return false;
+        return currentUserIndex != -1;
     }
     
     string getCurrentUsername() const {
-        // TODO: Implement get current user
-        return "";
+        return users[currentUserIndex].getUsername();
     }
+
+    void loadUsers(){
+        ifstream file("users.txt");
+        string line;
+        while(getline(file, line)){
+            stringstream ss(line);
+            string username, pass, phone, status;
+            getline(ss, username, '|');
+            getline(ss, pass, '|');
+            getline(ss, phone, '|');
+            getline(ss, status);
+
+            User u(username, pass, phone);
+            u.setStatus(status);
+            users.push_back(u);
+        }
+    }
+
+    void saveUsers(const string &filename = "users.txt") {
+    ofstream out(filename.c_str());
+    if (!out) {
+        cerr << "Error: Could not open file for saving users.\n";
+        return;
+    }
+
+    for (int i = 0; i < (int)users.size(); ++i) {
+        out << users[i].getUsername() << "|"
+            << users[i].getPassword() << "|"
+            << users[i].getPhoneNumber() << "|"
+            << users[i].getStatus() << "|"
+            << users[i].getLastSeen()
+            << endl;
+    }
+}
+
     
 public:
-    WhatsApp() : currentUserIndex(-1) {}
+    WhatsApp() : currentUserIndex(-1) {
+        loadUsers();
+    }
+
+    ~WhatsApp(){
+        saveUsers();
+    }
     
     void signUp() {
-        // TODO: Implement user registration
+        string uname, pwd, phone;
+        cout <<"Enter username: ";
+        cin>> uname;
+        if(findUserIndex(uname)!= -1){
+            cout << "User already exists.\n";
+            return;
+        }
+        cout << "Enter password: ";
+        cin >> pwd;
+
+        cout << "Enter phone Number: ";
+        cin >> phone;
+
+        users.push_back(User(uname, pwd, phone));
+        saveUsers("users.txt");
+        cout << "Account created successfully!\n";
     }
     
     void login() {
-        // TODO: Implement user login
+        string uname, pwd;
+        cout << "Enter username: ";
+        cin >> uname;
+
+        cout << "Enter password: ";
+        cin >> pwd;
+
+        int idx = findUserIndex(uname);
+        if(idx != -1 && users[idx].checkPassword(pwd)){
+            currentUserIndex = idx;
+            users[idx].updateLastSeen();
+            cout << "Login successful. \n";
+        } else{
+            cout << "Invalid usrname or password.\n";
+        }
     }
     
     void startPrivateChat() {
-        // TODO: Implement private chat creation
+        string other;
+        cout << "Enter username to chat with : ";
+        cin >> other;
+        if(findUserIndex(other) == -1){
+            cout << "User not found.\n";
+            return;
+        }
+        chats.push_back(new PrivateChat(getCurrentUsername(), other));
+        cout << "Private chat started with " << other << "...\n";
     }
     
     void createGroup() {
-        // TODO: Implement group creation
+        string name;
+        cout << "Enter group name: ";
+        cin >> name;
+        vector<string>members;
+        members.push_back(getCurrentUsername());
+        chats.push_back(new GroupChat(members, name, getCurrentUsername()));
+        cout << "Group created successfully. \n";
     }
     
     void viewChats() const {
-        // TODO: Implement chat viewing
+        for (vector<Chat*>::const_iterator it = chats.begin(); it != chats.end(); ++it){
+            (*it)->displayChat();
+        }
     }
     
     void logout() {
-        // TODO: Implement logout
+        currentUserIndex = -1;
+        cout << "logged out succssfully. \n";
     }
     
     void run() {
